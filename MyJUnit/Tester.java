@@ -4,34 +4,31 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 
 
-public class Tester extends Thread{
+public class Tester extends Thread {
 
-    private final LinkedList<Class> testingClasses;
+    private final LinkedList<Class<?>> testingClasses;
     private LinkedList<LinkedList<String>> testingResults;
     private Method[] methods;
-    private Class testingClass;
+    private Class<?> testingClass;
     private int pass;
     private int fail;
     private LinkedList<String> result;
-    private Object testingClassObject; 
+    private Object testingClassObject;
 
-    public Tester (LinkedList<Class> itestingClasses, LinkedList<LinkedList <String>> itestingResults)
-    {
+    public Tester(LinkedList<Class<?>> itestingClasses, LinkedList<LinkedList <String>> itestingResults) {
         testingClasses = itestingClasses;
         testingResults = itestingResults;
-        
     }
-    
-    public void run()
-    {
-        pass = 0;
-        fail = 0;
-        
-        while (!testingClasses.isEmpty()){
-            synchronized (testingClasses){
+
+    public void run() {
+
+        while (!testingClasses.isEmpty()) {
+            pass = 0;
+            fail = 0;
+            synchronized (testingClasses) {
                 if (testingClasses.isEmpty()) break;
                 testingClass = testingClasses.removeLast();
-            }            
+            }
             methods = testingClass.getMethods();
             result = new LinkedList();
             try {
@@ -39,93 +36,94 @@ public class Tester extends Thread{
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
-        
-            
-            runTestMethods();
-            
-            result.addFirst ("Testing of class " + testingClass.getName() + " finished!");
-            result.addLast ("Successed:" + pass + "   Failed:" + fail);
-            testingResults.addLast(result);
-            
-            
-            pass = 0;
-            fail = 0;
-        }
-    }
-    
-    
-    
-    private void runMethodWithAnnotation (Class annotation){
-        for (Method method : methods) {
-            if (method.isAnnotationPresent(annotation)) {
-                try {
-                    method.invoke(testingClassObject);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+
+            if(testingClassObject == null) {
+                result.addFirst("Testing of class " + testingClass.getName() + " finished!");
+                result.addLast("Could not create instance");
+            } else {
+                runTestMethods();
+                result.addFirst("Testing of class " + testingClass.getName() + " finished!");
+                result.addLast("Successed:" + pass + "   Failed:" + fail);
+            }
+
+            synchronized (testingResults) {
+                testingResults.addLast(result);
             }
         }
     }
-    private void addResultToList (boolean isSuccessed, String exceptionName, 
-                                            String methodName, boolean print){
-        
+
+    private void addResultToList(boolean isSuccessed, String exceptionName, String methodName, boolean print) {
+
         StringBuffer strBuf = new StringBuffer ("");
-        
-        strBuf.append((isSuccessed) ? "Success. " : "FAIL!!! "); 
+
+        strBuf.append((isSuccessed) ? "Success. " : "FAIL!!! ");
         strBuf.append((exceptionName.equals("")) ? "No exceptions" : exceptionName);
         strBuf.append(" have(s) been thrown in method ");
         strBuf.append(methodName);
-        
+
         result.addLast(strBuf.toString());
-       
-        if (print){
+
+        if (print) {
             System.out.println(strBuf + " of class " + testingClass.getCanonicalName());
         }
-        
     }
-    private void runTestMethods() 
-    {
-    
-        for (Method method : methods){
 
-            if (method.isAnnotationPresent(Test.class)) {
+    private void runTestMethods() {
 
-                Test test = method.getAnnotation(Test.class);
-                Class expected = test.expected();
+        Method beforeMethod = null, afterMethod = null;
+        LinkedList<Method> testMethods = new LinkedList();
 
-                runMethodWithAnnotation (Before.class);
-
-                try {
-                    method.invoke(testingClassObject);
-                    if (expected == Exception.class) {
-                        pass++;
-                        addResultToList (true, "", method.getName(), true);
-                    }
-                    else {
-                        fail++;
-                        addResultToList (false, "", method.getName(), true);
-                    }
-                }
-                catch (Exception e) {
-                    Class thrownException = e.getCause().getClass();
-                    if (thrownException == TestAssertionError.class) {
-                        
-                        addResultToList (false, "TestAssertionException", method.getName(), true);
-                        fail++;
-                    }
-                    else if (thrownException != expected) {
-                        addResultToList (false, thrownException.getName(), method.getName(), true);
-                        fail++;
-                    }
-                    else {
-                        addResultToList (false, "Expected exception", method.getName(), true);
-                        pass++;
-                    }
-                }
-                
-                runMethodWithAnnotation (After.class);
-            }
+        for (Method method : methods) {
+            if (method.isAnnotationPresent(Before.class)) beforeMethod = method;
+            else if (method.isAnnotationPresent(Test.class)) testMethods.add(method);
+            else if (method.isAnnotationPresent(After.class)) afterMethod = method;
         }
+
+        for (Method testMethod : testMethods) {
+
+            Test test = testMethod.getAnnotation(Test.class);
+            Class<?> expected = test.expected();
+
+            try {
+                beforeMethod.invoke(testingClassObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+                addResultToList(false, e.getClass().getName(), "Before method :" + beforeMethod.getName(), true);
+                return;
+            }
+
+            try {
+                testMethod.invoke(testingClassObject);
+                if (expected == Exception.class) {
+                    pass++;
+                    addResultToList(true, "", testMethod.getName(), true);
+                } else {
+                    fail++;
+                    addResultToList(false, "", testMethod.getName(), true);
+                }
+            } catch (Exception e) {
+                Class<?> thrownException = e.getCause().getClass();
+                if (thrownException == TestAssertionError.class) {
+                    addResultToList(false, "TestAssertionException", testMethod.getName(), true);
+                    fail++;
+                } else if (thrownException != expected) {
+                    addResultToList(false, thrownException.getName(), testMethod.getName(), true);
+                    fail++;
+                } else {
+                    addResultToList(false, "Expected exception", testMethod.getName(), true);
+                    pass++;
+                }
+            }
+
+            try {
+                afterMethod.invoke(testingClassObject);
+            } catch (Exception e) {
+                e.printStackTrace();
+                addResultToList(false, e.getClass().getName(), "After method :" + afterMethod.getName(), true);
+                return;
+            }
+
+        }
+
     }
-      
 }

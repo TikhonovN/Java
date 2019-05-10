@@ -5,6 +5,6 @@ public class TestAssertionError extends Exception {
 
     public TestAssertionError(String message)
     {
-        super (message);
+        super(message);
     }
 }
