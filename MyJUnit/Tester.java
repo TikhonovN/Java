@@ -88,7 +88,8 @@ public class Tester extends Thread {
                 beforeMethod.invoke(testingClassObject);
             } catch (Exception e) {
                 e.printStackTrace();
-                addResultToList(false, e.getClass().getName(), "Before method :" + beforeMethod.getName(), true);
+                Class<?> thrownException = getCauseException(e);
+                addResultToList(false, thrownException.getName(), "Before method :" + beforeMethod.getName(), true);
                 return;
             }
 
@@ -102,7 +103,7 @@ public class Tester extends Thread {
                     addResultToList(false, "", testMethod.getName(), true);
                 }
             } catch (Exception e) {
-                Class<?> thrownException = e.getCause().getClass();
+                Class<?> thrownException = getCauseException(e);
                 if (thrownException == TestAssertionError.class) {
                     addResultToList(false, "TestAssertionException", testMethod.getName(), true);
                     fail++;
@@ -119,11 +120,20 @@ public class Tester extends Thread {
                 afterMethod.invoke(testingClassObject);
             } catch (Exception e) {
                 e.printStackTrace();
-                addResultToList(false, e.getClass().getName(), "After method :" + afterMethod.getName(), true);
+                Class<?> thrownException = getCauseException(e);
+                addResultToList(false, thrownException.getName(), "After method :" + afterMethod.getName(), true);
                 return;
             }
 
         }
 
+    }
+
+    private Class<?> getCauseException(Exception e) {
+        if (e.getCause() == null) {
+            return e.getClass();
+        } else {
+            return e.getCause().getClass();
+        }
     }
 }
