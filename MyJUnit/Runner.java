@@ -5,7 +5,7 @@ public class Runner {
     private static LinkedList<LinkedList<String>> testingResults;
     
     public static void main(String [] args) {
-        if(args.length < 2 && !args[0].matches("\\d+")) {
+        if(args.length < 2 || !args[0].matches("\\d+")) {
             System.out.println("Invalid input values");
             System.out.println("Run command: java -cp <junit_jar>;<tested_classes> Runner <number_of_threads> [tested_class_name]+");
             return;
