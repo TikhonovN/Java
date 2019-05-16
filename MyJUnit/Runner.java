@@ -4,7 +4,7 @@ public class Runner {
     private static LinkedList<Class<?>> classesForTesting;
     private static LinkedList<LinkedList<String>> testingResults;
     
-    public static void main(String [] args) {
+    public static void main(String[] args) {
         if(args.length < 2 || !args[0].matches("\\d+")) {
             System.out.println("Invalid input values");
             System.out.println("Run command: java -cp <junit_jar>;<tested_classes> Runner <number_of_threads> [tested_class_name]+");
@@ -15,7 +15,7 @@ public class Runner {
         testingResults = new LinkedList();
               
         int numberOfThreads = Integer.parseInt(args[0]);
-        for (int i = 0; i < numberOfThreads; i++) {
+        for (int i = 0; i < numberOfThreads; ++i) {
             new Tester(classesForTesting, testingResults).start();
         }
         while (testingResults.size() != numberOfClasses) {
@@ -31,14 +31,14 @@ public class Runner {
     private static void printResults() {
         while (!testingResults.isEmpty()) {
             System.out.println();
-            LinkedList <String> res = testingResults.removeFirst();
+            LinkedList<String> res = testingResults.removeFirst();
             while (!res.isEmpty()) {
                 System.out.println(res.removeFirst());
             }
         }
     }
     
-    private static void loadClasses(String [] args, int size) {
+    private static void loadClasses(String[] args, int size) {
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
         classesForTesting = new LinkedList();
         for (int i = 1; i < size; ++i) {

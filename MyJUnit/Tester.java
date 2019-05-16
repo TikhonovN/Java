@@ -15,7 +15,7 @@ public class Tester extends Thread {
     private LinkedList<String> result;
     private Object testingClassObject;
 
-    public Tester(LinkedList<Class<?>> itestingClasses, LinkedList<LinkedList <String>> itestingResults) {
+    public Tester(LinkedList<Class<?>> itestingClasses, LinkedList<LinkedList<String>> itestingResults) {
         testingClasses = itestingClasses;
         testingResults = itestingResults;
     }
