@@ -62,8 +62,6 @@ public class Tester extends Thread {
         strBuf.append(methodName);
 
         result.addLast(strBuf.toString());
-
-//        System.out.println(strBuf + " of class " + testingClass.getCanonicalName());
     }
 
     private void runTestMethods() {
