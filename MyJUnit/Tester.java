@@ -52,7 +52,7 @@ public class Tester extends Thread {
         }
     }
 
-    private void addResultToList(boolean isSuccessed, String exceptionName, String methodName, boolean print) {
+    private void addResultToList(boolean isSuccessed, String exceptionName, String methodName) {
 
         StringBuffer strBuf = new StringBuffer ("");
 
@@ -63,9 +63,7 @@ public class Tester extends Thread {
 
         result.addLast(strBuf.toString());
 
-        if (print) {
-            System.out.println(strBuf + " of class " + testingClass.getCanonicalName());
-        }
+//        System.out.println(strBuf + " of class " + testingClass.getCanonicalName());
     }
 
     private void runTestMethods() {
@@ -89,7 +87,7 @@ public class Tester extends Thread {
             } catch (Exception e) {
                 e.printStackTrace();
                 Class<?> thrownException = getCauseException(e);
-                addResultToList(false, thrownException.getName(), "Before method :" + beforeMethod.getName(), true);
+                addResultToList(false, thrownException.getName(), "Before method :" + beforeMethod.getName());
                 return;
             }
 
@@ -97,21 +95,21 @@ public class Tester extends Thread {
                 testMethod.invoke(testingClassObject);
                 if (expected == Exception.class) {
                     pass++;
-                    addResultToList(true, "", testMethod.getName(), true);
+                    addResultToList(true, "", testMethod.getName());
                 } else {
                     fail++;
-                    addResultToList(false, "", testMethod.getName(), true);
+                    addResultToList(false, "", testMethod.getName());
                 }
             } catch (Exception e) {
                 Class<?> thrownException = getCauseException(e);
                 if (thrownException == TestAssertionError.class) {
-                    addResultToList(false, "TestAssertionException", testMethod.getName(), true);
+                    addResultToList(false, "TestAssertionException", testMethod.getName());
                     fail++;
                 } else if (thrownException != expected) {
-                    addResultToList(false, thrownException.getName(), testMethod.getName(), true);
+                    addResultToList(false, thrownException.getName(), testMethod.getName());
                     fail++;
                 } else {
-                    addResultToList(false, "Expected exception", testMethod.getName(), true);
+                    addResultToList(false, "Expected exception", testMethod.getName());
                     pass++;
                 }
             }
@@ -121,7 +119,7 @@ public class Tester extends Thread {
             } catch (Exception e) {
                 e.printStackTrace();
                 Class<?> thrownException = getCauseException(e);
-                addResultToList(false, thrownException.getName(), "After method :" + afterMethod.getName(), true);
+                addResultToList(false, thrownException.getName(), "After method :" + afterMethod.getName());
                 return;
             }
 

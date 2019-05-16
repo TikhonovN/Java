@@ -25,7 +25,9 @@ public class Runner {
                 ex.printStackTrace();
             }
         }
-        printResults();
+        synchronized (testingResults) {
+            printResults();
+        }
     }
 
     private static void printResults() {
