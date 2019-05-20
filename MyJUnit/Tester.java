@@ -22,7 +22,7 @@ public class Tester extends Thread {
 
     public void run() {
 
-        while (!testingClasses.isEmpty()) {
+        while (true) {
             pass = 0;
             fail = 0;
             synchronized (testingClasses) {

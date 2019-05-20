@@ -18,13 +18,23 @@ public class Runner {
         for (int i = 0; i < numberOfThreads; ++i) {
             new Tester(classesForTesting, testingResults).start();
         }
-        while (testingResults.size() != numberOfClasses) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
+
+        int size = 0;
+        while (true) {
+            synchronized (testingResults) {
+                size = testingResults.size();
+            }
+            if (size != numberOfClasses) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            } else {
+                break;
             }
         }
+
         synchronized (testingResults) {
             printResults();
         }
